@@ -1,9 +1,15 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import type { ParsedBook } from '../lib/types'
+import type { OverlayMode } from '../lib/textAnalysis'
 import { useTypingEngine } from '../hooks/useTypingEngine'
 import { useProgress } from '../hooks/useProgress'
+import { useCmuDict } from '../hooks/useCmuDict'
+import { useTextAnalysis } from '../hooks/useTextAnalysis'
 import CharacterDisplay from './CharacterDisplay'
 import ProgressBar from './ProgressBar'
+import AnalysisPanel from './AnalysisPanel'
+
+export type StressDisplay = 'off' | 'inline' | 'panel'
 
 interface TypingViewProps {
   book: ParsedBook
@@ -35,9 +41,25 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
   })
 
   const [flashClass, setFlashClass] = useState('')
+  const [overlayMode, setOverlayMode] = useState<OverlayMode>('off')
+  const [stressDisplay, setStressDisplay] = useState<StressDisplay>('inline')
+
+  const dict = useCmuDict()
 
   const currentSection = book.sections[sectionIndex]
   const sourceText = currentSection?.paragraphs[paragraphIndex] || ''
+
+  const analysis = useTextAnalysis(sourceText, dict, overlayMode)
+
+  const wordStresses = useMemo(() => {
+    if (!analysis || stressDisplay !== 'inline') return undefined
+    return analysis.words.map((w, i) => ({
+      start: w.start,
+      end: w.end,
+      stress: analysis.stressData[i].stress,
+    }))
+  }, [analysis, stressDisplay])
+
   const isEndOfBook = sectionIndex >= book.sections.length
 
   const { state, handleInput, handleBackspace, reset } = useTypingEngine(sourceText)
@@ -57,6 +79,22 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
     reset()
     setBrowsing(false)
   }, [book.sections, save, reset])
+
+  const goPrev = useCallback(() => {
+    if (paragraphIndex > 0) {
+      goTo(sectionIndex, paragraphIndex - 1)
+    } else if (sectionIndex > 0) {
+      goTo(sectionIndex - 1, book.sections[sectionIndex - 1].paragraphs.length - 1)
+    }
+  }, [sectionIndex, paragraphIndex, book.sections, goTo])
+
+  const goNext = useCallback(() => {
+    if (currentSection && paragraphIndex < currentSection.paragraphs.length - 1) {
+      goTo(sectionIndex, paragraphIndex + 1)
+    } else if (sectionIndex < book.sections.length - 1) {
+      goTo(sectionIndex + 1, 0)
+    }
+  }, [sectionIndex, paragraphIndex, currentSection, book.sections, goTo])
 
   // Auto-advance on paragraph completion
   useEffect(() => {
@@ -134,6 +172,8 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
       <div className="typing-header">
         <h2>{book.title}</h2>
         <div className="header-buttons">
+          <button className="nav-btn" onClick={goPrev} aria-label="Previous paragraph">&lt;</button>
+          <button className="nav-btn" onClick={goNext} aria-label="Next paragraph">&gt;</button>
           <button onClick={() => setBrowsing(!browsing)}>
             {browsing ? 'type' : 'browse'}
           </button>
@@ -174,7 +214,18 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
             sourceText={sourceText}
             charStates={state.charStates}
             className={flashClass}
+            charAnnotations={analysis?.charAnnotations}
+            wordStresses={wordStresses}
           />
+          {analysis && (
+            <AnalysisPanel
+              analysis={analysis}
+              overlayMode={overlayMode}
+              onOverlayChange={setOverlayMode}
+              stressDisplay={stressDisplay}
+              onStressDisplayChange={setStressDisplay}
+            />
+          )}
         </>
       )}
     </div>

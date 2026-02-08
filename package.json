@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:dict": "node scripts/process-cmudict.mjs"
   },
   "dependencies": {
     "epubjs": "^0.3.93",
