@@ -47,6 +47,21 @@ body {
   font-size: 0.85rem;
 }
 
+/* Shared ghost button base */
+.ghost-btn {
+  background: none;
+  border: 1px solid var(--text-dim);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ghost-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .example-btn {
   background: none;
   border: none;
@@ -122,20 +137,9 @@ body {
 }
 
 .typing-header button {
-  background: none;
-  border: 1px solid var(--text-dim);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 4px 12px;
   border-radius: 4px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.typing-header button:hover {
-  color: var(--accent);
-  border-color: var(--accent);
 }
 
 /* Header buttons */
@@ -286,20 +290,9 @@ body {
 }
 
 .end-of-book button {
-  background: none;
-  border: 1px solid var(--text-dim);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
   font-size: 0.85rem;
   padding: 8px 20px;
   border-radius: 4px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.end-of-book button:hover {
-  color: var(--accent);
-  border-color: var(--accent);
 }
 
 /* Loading state */

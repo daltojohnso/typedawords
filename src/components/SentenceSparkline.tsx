@@ -5,7 +5,7 @@ interface SentenceSparklineProps {
 }
 
 export default function SentenceSparkline({ sentences }: SentenceSparklineProps) {
-  const maxWords = Math.max(...sentences.map((s) => s.wordCount), 1)
+  const maxWords = sentences.reduce((mx, s) => Math.max(mx, s.wordCount), 1)
 
   return (
     <div className="sparkline">

@@ -40,21 +40,20 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
 
   const totalParagraphs = book.sections.reduce((sum, s) => sum + s.paragraphs.length, 0)
 
-  const [sectionIndex, setSectionIndex] = useState(() => {
+  const savedPosition = useMemo(() => {
     const saved = load()
-    if (saved && saved.sectionIndex < book.sections.length) return saved.sectionIndex
-    return 0
-  })
+    if (!saved || saved.sectionIndex >= book.sections.length) return { section: 0, paragraph: 0 }
+    const section = saved.sectionIndex
+    const paragraph = saved.paragraphIndex < book.sections[section].paragraphs.length
+      ? saved.paragraphIndex
+      : 0
+    return { section, paragraph }
+  // Only compute once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const [paragraphIndex, setParagraphIndex] = useState(() => {
-    const saved = load()
-    if (
-      saved &&
-      saved.sectionIndex < book.sections.length &&
-      saved.paragraphIndex < book.sections[saved.sectionIndex].paragraphs.length
-    ) return saved.paragraphIndex
-    return 0
-  })
+  const [sectionIndex, setSectionIndex] = useState(savedPosition.section)
+  const [paragraphIndex, setParagraphIndex] = useState(savedPosition.paragraph)
 
   const [flashClass, setFlashClass] = useState('')
   const [overlayMode, setOverlayMode] = useStickyState<OverlayMode>('typedawords:overlay', 'off')
@@ -79,6 +78,10 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
   const isEndOfBook = sectionIndex >= book.sections.length
 
   const { state, handleInput, handleBackspace, reset } = useTypingEngine(sourceText)
+
+  // Ref to hold current position for the auto-advance effect (avoids stale closures)
+  const advanceRef = useRef({ sectionIndex, paragraphIndex, currentSection, save, reset, bookSections: book.sections })
+  advanceRef.current = { sectionIndex, paragraphIndex, currentSection, save, reset, bookSections: book.sections }
 
   let completedParagraphs = 0
   for (let i = 0; i < sectionIndex; i++) {
@@ -113,31 +116,32 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
   }, [sectionIndex, paragraphIndex, currentSection, book.sections, goTo])
 
   // Auto-advance on paragraph completion
+  // Reads from advanceRef so the timeout always uses current position values
   useEffect(() => {
     if (!state.isComplete || sourceText.length === 0) return
 
     setFlashClass('paragraph-complete')
     const timeout = setTimeout(() => {
       setFlashClass('')
+      const { sectionIndex: si, paragraphIndex: pi, currentSection: cs, save: sv, reset: rs, bookSections } = advanceRef.current
 
-      if (currentSection && paragraphIndex < currentSection.paragraphs.length - 1) {
-        const nextPara = paragraphIndex + 1
+      if (cs && pi < cs.paragraphs.length - 1) {
+        const nextPara = pi + 1
         setParagraphIndex(nextPara)
-        save({ sectionIndex, paragraphIndex: nextPara })
+        sv({ sectionIndex: si, paragraphIndex: nextPara })
       } else {
-        const nextSection = sectionIndex + 1
+        const nextSection = si + 1
         setSectionIndex(nextSection)
         setParagraphIndex(0)
-        if (nextSection < book.sections.length) {
-          save({ sectionIndex: nextSection, paragraphIndex: 0 })
+        if (nextSection < bookSections.length) {
+          sv({ sectionIndex: nextSection, paragraphIndex: 0 })
         }
       }
-      reset()
+      rs()
     }, 300)
 
     return () => clearTimeout(timeout)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.isComplete])
+  }, [state.isComplete, sourceText.length])
 
   // Focus textarea when not browsing
   useEffect(() => {
@@ -177,7 +181,7 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
         <div className="end-of-book">
           <h2>finished</h2>
           <p>you typed the entire book</p>
-          <button onClick={onBack}>new book</button>
+          <button className="ghost-btn" onClick={onBack}>new book</button>
         </div>
       </div>
     )
@@ -188,12 +192,12 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
       <div className="typing-header">
         <h2>{book.title}</h2>
         <div className="header-buttons">
-          <button className="nav-btn" onClick={goPrev} aria-label="Previous paragraph">&lt;</button>
-          <button className="nav-btn" onClick={goNext} aria-label="Next paragraph">&gt;</button>
-          <button onClick={() => setBrowsing(!browsing)}>
+          <button className="ghost-btn nav-btn" onClick={goPrev} aria-label="Previous paragraph">&lt;</button>
+          <button className="ghost-btn nav-btn" onClick={goNext} aria-label="Next paragraph">&gt;</button>
+          <button className="ghost-btn" onClick={() => setBrowsing(!browsing)}>
             {browsing ? 'type' : 'browse'}
           </button>
-          <button onClick={onBack}>new book</button>
+          <button className="ghost-btn" onClick={onBack}>new book</button>
         </div>
       </div>
       <ProgressBar current={completedParagraphs} total={totalParagraphs} />

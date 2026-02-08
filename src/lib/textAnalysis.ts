@@ -23,6 +23,15 @@ export interface CharAnnotation {
   bg?: string
 }
 
+/** Shared stress-dot styling used by both CharacterDisplay and StressPatternViz */
+export const STRESS_DOT_STYLES: Record<number, { size: number; opacity: number }> = {
+  0: { size: 4, opacity: 0.25 },
+  1: { size: 8, opacity: 1.0 },
+  2: { size: 6, opacity: 0.55 },
+}
+
+export const STRESS_DOT_UNKNOWN = { size: 5, opacity: 0.12 }
+
 const CONJUNCTIONS = new Set(['and', 'but', 'or', 'nor', 'for', 'yet', 'so'])
 
 export function extractWords(text: string): WordSpan[] {
@@ -82,7 +91,7 @@ export function buildCharAnnotations(
   dict: StressDict,
   mode: OverlayMode,
 ): CharAnnotation[] {
-  const annotations: CharAnnotation[] = new Array(text.length).fill({})
+  const annotations: CharAnnotation[] = Array.from({ length: text.length }, () => ({}))
   if (mode === 'off') return annotations
 
   for (const w of words) {

@@ -4,7 +4,15 @@ let cached: Promise<StressDict> | null = null
 
 export function loadCmuDict(): Promise<StressDict> {
   if (!cached) {
-    cached = fetch('/cmudict.json').then((r) => r.json())
+    cached = fetch('/cmudict.json')
+      .then((r) => {
+        if (!r.ok) throw new Error(`CMU dict fetch failed: ${r.status}`)
+        return r.json()
+      })
+      .catch((e) => {
+        cached = null
+        throw e
+      })
   }
   return cached
 }

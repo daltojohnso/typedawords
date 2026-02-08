@@ -1,12 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import type { CharState } from '../lib/types'
 
-interface TypingEngineState {
-  typed: string[]
-  charStates: CharState[]
-  isComplete: boolean
-}
-
 export function useTypingEngine(sourceText: string) {
   const [typed, setTyped] = useState<string[]>([])
   const prevSourceRef = useRef(sourceText)
@@ -53,7 +47,5 @@ export function useTypingEngine(sourceText: string) {
     setTyped([])
   }, [])
 
-  const state: TypingEngineState = { typed, charStates, isComplete }
-
-  return { state, handleInput, handleBackspace, reset }
+  return { state: { typed, charStates, isComplete }, handleInput, handleBackspace, reset }
 }

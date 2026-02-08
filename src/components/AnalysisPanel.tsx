@@ -13,17 +13,32 @@ interface AnalysisPanelProps {
   onStressDisplayChange: (mode: StressDisplay) => void
 }
 
-const OVERLAY_OPTIONS: { value: OverlayMode; label: string }[] = [
-  { value: 'off', label: 'off' },
-  { value: 'conj', label: 'conj' },
-  { value: 'syllables', label: 'syllables' },
-]
+const OVERLAY_OPTIONS: OverlayMode[] = ['off', 'conj', 'syllables']
+const STRESS_OPTIONS: StressDisplay[] = ['off', 'inline', 'panel']
 
-const STRESS_OPTIONS: { value: StressDisplay; label: string }[] = [
-  { value: 'off', label: 'off' },
-  { value: 'inline', label: 'inline' },
-  { value: 'panel', label: 'panel' },
-]
+function ToggleGroup<T extends string>({ label, options, active, onChange }: {
+  label: string
+  options: T[]
+  active: T
+  onChange: (v: T) => void
+}) {
+  return (
+    <div className="toggle-group">
+      <span className="toggle-label">{label}</span>
+      <div className="overlay-toggles">
+        {options.map((opt) => (
+          <button
+            key={opt}
+            className={`overlay-btn ${active === opt ? 'overlay-active' : ''}`}
+            onClick={() => onChange(opt)}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function AnalysisPanel({ analysis, overlayMode, onOverlayChange, stressDisplay, onStressDisplayChange }: AnalysisPanelProps) {
   const [collapsed, setCollapsed] = useState(false)
@@ -36,34 +51,8 @@ export default function AnalysisPanel({ analysis, overlayMode, onOverlayChange, 
     <div className={`analysis-panel ${collapsed ? 'analysis-collapsed' : ''}`}>
       <div className="analysis-header">
         <div className="toggle-groups">
-          <div className="toggle-group">
-            <span className="toggle-label">highlight</span>
-            <div className="overlay-toggles">
-              {OVERLAY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`overlay-btn ${overlayMode === opt.value ? 'overlay-active' : ''}`}
-                  onClick={() => onOverlayChange(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="toggle-group">
-            <span className="toggle-label">stress</span>
-            <div className="overlay-toggles">
-              {STRESS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  className={`overlay-btn ${stressDisplay === opt.value ? 'overlay-active' : ''}`}
-                  onClick={() => onStressDisplayChange(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <ToggleGroup label="highlight" options={OVERLAY_OPTIONS} active={overlayMode} onChange={onOverlayChange} />
+          <ToggleGroup label="stress" options={STRESS_OPTIONS} active={stressDisplay} onChange={onStressDisplayChange} />
         </div>
         <button
           className="collapse-btn"

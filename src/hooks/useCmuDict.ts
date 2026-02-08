@@ -5,7 +5,7 @@ export function useCmuDict(): StressDict | null {
   const [dict, setDict] = useState<StressDict | null>(null)
 
   useEffect(() => {
-    loadCmuDict().then(setDict)
+    loadCmuDict().then(setDict).catch(() => {})
   }, [])
 
   return dict

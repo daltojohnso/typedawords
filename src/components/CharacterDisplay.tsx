@@ -1,6 +1,6 @@
 import React from 'react'
 import type { CharState } from '../lib/types'
-import type { CharAnnotation } from '../lib/textAnalysis'
+import { STRESS_DOT_STYLES, STRESS_DOT_UNKNOWN, type CharAnnotation } from '../lib/textAnalysis'
 
 export interface WordStressInfo {
   start: number
@@ -22,13 +22,6 @@ const stateClassMap: Record<CharState, string> = {
   cursor: 'char-cursor',
   untyped: 'char-untyped',
 }
-
-const DOT_STYLES: Record<number, { size: number; opacity: number }> = {
-  0: { size: 4, opacity: 0.25 },
-  1: { size: 8, opacity: 1.0 },
-  2: { size: 6, opacity: 0.55 },
-}
-const UNKNOWN_STYLE = { size: 5, opacity: 0.12 }
 
 export default function CharacterDisplay({ sourceText, charStates, className, charAnnotations, wordStresses }: CharacterDisplayProps) {
 
@@ -52,7 +45,7 @@ export default function CharacterDisplay({ sourceText, charStates, className, ch
     return (
       <span className="word-stress-dots">
         {stress.map((level, i) => {
-          const s = DOT_STYLES[level] || UNKNOWN_STYLE
+          const s = STRESS_DOT_STYLES[level] || STRESS_DOT_UNKNOWN
           return (
             <span
               key={i}
