@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# typedawords
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Type over prose, paragraph by paragraph. Upload an EPUB and practice typing through real literature with real-time linguistic analysis.
 
-Currently, two official plugins are available:
+**Live at [typedawords.vercel.app](https://typedawords.vercel.app)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Paragraph-by-paragraph typing** with character-level correct/incorrect feedback
+- **Auto-advance** through sections and chapters
+- **Progress persistence** — your place is saved per book in localStorage; re-upload the same EPUB and pick up where you left off
+- **EPUB persistence** — the book itself is stored in IndexedDB so page refreshes don't require re-uploading
+- **Browse mode** — jump to any paragraph; `<` / `>` buttons for quick navigation without leaving typing mode
+- **Analysis panel** with:
+  - **Sentence sparkline** — bar chart of word count per sentence
+  - **Conjunction density** — count and percentage of coordinating conjunctions
+  - **Stress pattern visualization** — dots sized by syllable stress (CMU Pronouncing Dictionary), displayable inline above words or in the panel
+  - **Text overlays** — toggle background tints for conjunctions or syllable-length heatmap
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+npm install
+npm run gen:dict   # downloads CMU dict and generates public/cmudict.json
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+npm run build
+vercel --prod
+```
+
+## Stack
+
+- React 19 + TypeScript
+- Vite
+- [epubjs](https://github.com/futurepress/epub.js) for EPUB parsing
+- [CMU Pronouncing Dictionary](https://github.com/cmusphinx/cmudict) for stress/syllable data
+- Hosted on Vercel
