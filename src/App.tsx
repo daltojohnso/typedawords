@@ -1,15 +1,30 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { ParsedBook } from './lib/types'
 import { parseEpub } from './lib/epubParser'
+import { storeEpub, loadEpub, clearEpub } from './lib/epubStore'
 import UploadScreen from './components/UploadScreen'
 import TypingView from './components/TypingView'
 
 function App() {
   const [book, setBook] = useState<ParsedBook | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const handleFileLoaded = useCallback(async (arrayBuffer: ArrayBuffer, _fileName: string) => {
+  // Try to restore the last EPUB from IndexedDB on mount
+  useEffect(() => {
+    loadEpub().then(async (stored) => {
+      if (!stored) { setLoading(false); return }
+      try {
+        const parsed = await parseEpub(stored.buffer)
+        if (parsed.sections.length > 0) setBook(parsed)
+      } catch {
+        // stored epub is corrupt — ignore
+      }
+      setLoading(false)
+    }).catch(() => setLoading(false))
+  }, [])
+
+  const handleFileLoaded = useCallback(async (arrayBuffer: ArrayBuffer, fileName: string) => {
     setLoading(true)
     setError(null)
     try {
@@ -19,6 +34,7 @@ function App() {
         setLoading(false)
         return
       }
+      await storeEpub(arrayBuffer, fileName)
       setBook(parsed)
     } catch (e) {
       setError(`Failed to parse EPUB: ${e instanceof Error ? e.message : 'unknown error'}`)
@@ -28,6 +44,7 @@ function App() {
   }, [])
 
   const handleBack = useCallback(() => {
+    clearEpub()
     setBook(null)
     setError(null)
   }, [])
