@@ -79,7 +79,7 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
 
   const { state, handleInput, handleBackspace, reset } = useTypingEngine(sourceText)
 
-  // Ref to hold current position for the auto-advance effect (avoids stale closures)
+  // Ref holding values needed by the auto-advance timeout (avoids stale closures)
   const advanceRef = useRef({ sectionIndex, paragraphIndex, currentSection, save, reset, bookSections: book.sections })
   advanceRef.current = { sectionIndex, paragraphIndex, currentSection, save, reset, bookSections: book.sections }
 

@@ -17,7 +17,10 @@ export default function UploadScreen({ onFileLoaded }: UploadScreenProps) {
   const handleExample = useCallback(() => {
     setLoadingExample(true)
     fetch('/example.epub')
-      .then((r) => r.arrayBuffer())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.arrayBuffer()
+      })
       .then((buf) => onFileLoaded(buf, 'a-farewell-to-arms.epub'))
       .catch(() => setLoadingExample(false))
   }, [onFileLoaded])
