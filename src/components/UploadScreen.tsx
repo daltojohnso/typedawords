@@ -7,10 +7,19 @@ interface UploadScreenProps {
 export default function UploadScreen({ onFileLoaded }: UploadScreenProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [loadingExample, setLoadingExample] = useState(false)
 
   const handleFile = useCallback((file: File) => {
     if (!file.name.endsWith('.epub')) return
     file.arrayBuffer().then((buf) => onFileLoaded(buf, file.name))
+  }, [onFileLoaded])
+
+  const handleExample = useCallback(() => {
+    setLoadingExample(true)
+    fetch('/example.epub')
+      .then((r) => r.arrayBuffer())
+      .then((buf) => onFileLoaded(buf, 'a-farewell-to-arms.epub'))
+      .catch(() => setLoadingExample(false))
   }, [onFileLoaded])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -52,6 +61,9 @@ export default function UploadScreen({ onFileLoaded }: UploadScreenProps) {
           onChange={handleChange}
         />
       </div>
+      <button className="example-btn" onClick={handleExample} disabled={loadingExample}>
+        {loadingExample ? 'loading...' : 'or try A Farewell to Arms'}
+      </button>
       <p>type over prose, paragraph by paragraph</p>
     </div>
   )

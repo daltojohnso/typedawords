@@ -11,6 +11,22 @@ import AnalysisPanel from './AnalysisPanel'
 
 export type StressDisplay = 'off' | 'inline' | 'panel'
 
+function useStickyState<T extends string>(key: string, defaultValue: T): [T, (v: T) => void] {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const stored = localStorage.getItem(key)
+      return stored !== null ? (stored as T) : defaultValue
+    } catch {
+      return defaultValue
+    }
+  })
+  const set = useCallback((v: T) => {
+    setValue(v)
+    try { localStorage.setItem(key, v) } catch { /* ignore */ }
+  }, [key])
+  return [value, set]
+}
+
 interface TypingViewProps {
   book: ParsedBook
   onBack: () => void
@@ -41,8 +57,8 @@ export default function TypingView({ book, onBack }: TypingViewProps) {
   })
 
   const [flashClass, setFlashClass] = useState('')
-  const [overlayMode, setOverlayMode] = useState<OverlayMode>('off')
-  const [stressDisplay, setStressDisplay] = useState<StressDisplay>('inline')
+  const [overlayMode, setOverlayMode] = useStickyState<OverlayMode>('typedawords:overlay', 'off')
+  const [stressDisplay, setStressDisplay] = useStickyState<StressDisplay>('typedawords:stress', 'off')
 
   const dict = useCmuDict()
 
